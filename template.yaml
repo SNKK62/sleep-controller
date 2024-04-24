@@ -1,0 +1,128 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  TimesTableName:
+    Type: String
+    Default: TimesTable
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+    MemorySize: 128
+    Environment:
+      Variables:
+        LINE_MESSAGING_ENDPOINT: https://api.line.me/v2/bot/message
+        TIMES_TABLE_NAME: !Ref TimesTableName
+    LoggingConfig: # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
+      LogFormat: JSON
+
+Resources:
+  CreateTimerFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: create_timer/
+      Handler: app.lambda_handler
+      Runtime: python3.10
+      Policies:
+        - AmazonDynamoDBFullAccess
+      Layers:
+        - !Ref PythonCommonLayer
+      Architectures:
+        - x86_64
+      Events:
+        CreateTimer:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /timer
+            Method: post
+
+  DeleteTimerFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: delete_timer/
+      Handler: app.lambda_handler
+      Runtime: python3.10
+      Policies:
+        - AmazonDynamoDBFullAccess
+      Layers:
+        - !Ref PythonCommonLayer
+      Architectures:
+        - x86_64
+      Events:
+        CreateTimer:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /timer
+            Method: delete
+
+  AskTimerFunction: # Lambdaの定義
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ask_timer/
+      Handler: app.lambda_handler
+      Runtime: python3.10
+      Layers:
+        - !Ref PythonCommonLayer
+      Architectures:
+        - x86_64
+      Events: # Lambdaの定義内でEventBridgeRuleを定義
+        ScheduledFunction:
+          Type: ScheduleV2
+          Properties:
+            ScheduleExpression: cron(* 8 * * ? *) # AM 8:00にトリガー
+            ScheduleExpressionTimezone: "Asia/Tokyo" # 日本のタイムゾーンに設定
+            State: ENABLED
+            Name: ask-timer-schedule
+
+  CheckTimerFunction: # Lambdaの定義
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: check_timer/
+      Handler: app.lambda_handler
+      Runtime: python3.10
+      Policies:
+        - AmazonDynamoDBFullAccess
+      Layers:
+        - !Ref PythonCommonLayer
+      Architectures:
+        - x86_64
+      Events: # Lambdaの定義内でEventBridgeRuleを定義
+        ScheduledFunction:
+          Type: ScheduleV2
+          Properties:
+            ScheduleExpression: cron(*/15 * * * ? *) # 15分毎にトリガー
+            ScheduleExpressionTimezone: "Asia/Tokyo" # 日本のタイムゾーンに設定
+            State: ENABLED
+            Name: check-timer-schedule
+
+  PythonCommonLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      Description: Layer description
+      ContentUri: layer/
+      CompatibleRuntimes:
+        - python3.10
+    Metadata:
+      BuildMethod: python3.10
+
+  TimesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref TimesTableName
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  ApiURL:
+    Description: API Gateway endpoint URL for Prod stage
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"

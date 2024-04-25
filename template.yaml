@@ -71,7 +71,7 @@ Resources:
         ScheduledFunction:
           Type: ScheduleV2
           Properties:
-            ScheduleExpression: cron(* 8 * * ? *) # AM 8:00にトリガー
+            ScheduleExpression: cron(0 8 * * ? *) # AM 8:00にトリガー
             ScheduleExpressionTimezone: "Asia/Tokyo" # 日本のタイムゾーンに設定
             State: ENABLED
             Name: ask-timer-schedule

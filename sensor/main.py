@@ -20,7 +20,7 @@ class ReceiveThread(threading.Thread):
         self.udpServSock = socket(AF_INET, SOCK_DGRAM)
         self.udpServSock.bind(self.ADDR)
         self.received = False
-        
+
     def get_data(self):
         data_ary = []
         for i in reversed(range(8)):
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     while True:
         if not th.data:
             break
-        
+
         if th.received:
             sensor_data = th.get_data()[0] #TODO: 0番目のセンサデータを取得(センサーが差されている場所によって変更する)
             if is_initial:

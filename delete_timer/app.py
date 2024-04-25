@@ -18,7 +18,7 @@ data = {
     "messages": [
         {
             "type": "text",
-            "text": '就寝を確認しました．'
+            "text": '消灯を確認しました．'
         }
     ]
 }

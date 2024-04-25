@@ -14,6 +14,8 @@ Globals:
     Environment:
       Variables:
         LINE_MESSAGING_ENDPOINT: https://api.line.me/v2/bot/message
+        LINE_ACCESS_TOKEN: <YOUR_LINE_ACCESS_TOKEN>
+        LINE_USER_ID: <YOUR_LINE_USER_ID>
         TIMES_TABLE_NAME: !Ref TimesTableName
     LoggingConfig: # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
       LogFormat: JSON

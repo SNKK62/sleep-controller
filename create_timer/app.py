@@ -37,25 +37,17 @@ def lambda_handler(event, context):
     )
     dt = datetime.datetime.now(ZoneInfo("Asia/Tokyo"))
     dt_str = dt.strftime('%Y-%m-%d')
-    start, end = user_text.split('\n')
-    if int(start.split(':')[0]) < 12:
+    if int(user_text.split(':')[0]) > 24:
         dt_tomorrow = dt + datetime.timedelta(days=1)
         dt_tomorrow_str = dt_tomorrow.strftime('%Y-%m-%d')
-        start_time = f'{dt_tomorrow_str} {start}'
+        dest = f'{dt_tomorrow_str} {int(user_text.split(":")[0]) - 24}:{user_text.split(":")[1]}'
     else:
-        start_time = f'{dt_str} {start}'
-    if int(end.split(':')[0]) < 12:
-        dt_tomorrow = dt + datetime.timedelta(days=1)
-        dt_tomorrow_str = dt_tomorrow.strftime('%Y-%m-%d')
-        end_time = f'{dt_tomorrow_str} {end}'
-    else:
-        end_time = f'{dt_str} {end}'
+        dest = f'{dt_str} {user_text}'
 
     table.put_item(
         Item={
             'id': 'new',
-            'start': start_time,
-            'end': end_time,
+            'time': dest
         }
 
     )

@@ -58,7 +58,7 @@ if __name__ == '__main__':
                 time.sleep(1)
                 continue
 
-            if last_data > 0.2 and sensor_data < 0.2: # 明るい -> 暗いのとき
+            if last_data < 0.05 and sensor_data > 0.05: # 明るい -> 暗いのとき
                 requests.delete("https://xxxx.execute-api.ap-northeast-1.amazonaws.com/Prod") #TODO: API GatewayのURLを指定
             print(sensor_data)
             last_data = sensor_data

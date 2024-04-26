@@ -30,7 +30,7 @@ $ sam build
 $ sam deploy
 ```
 
-### 5. RaspberryPi に光センサーを接続して`/sensor/main.py`を実行する
+### 5. RaspberryPi に感圧センサーを接続して`/sensor/main.py`を実行する
 
 ※ main.py の`TODO`部分は要確認
 

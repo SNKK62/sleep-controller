@@ -34,11 +34,11 @@ def lambda_handler(event, context):
     items = res.get('Items')
 
     if len(items) > 0:
-        end_str = items[0].get('end')
+        dest_str = items[0].get('time')
         now_str = datetime.datetime.now(ZoneInfo("Asia/Tokyo")).strftime('%Y-%m-%d %H:%M')
-        end = datetime.datetime.strptime(end_str, '%Y-%m-%d %H:%M')
+        dest = datetime.datetime.strptime(dest_str, '%Y-%m-%d %H:%M')
         now = datetime.datetime.strptime(now_str, '%Y-%m-%d %H:%M')
-        if now > end:
+        if now > dest:
             requests.post(
                 f'{LINE_MESSAGING_ENDPOINT}/push',
                 data=body,

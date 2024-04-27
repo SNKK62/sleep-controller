@@ -3,6 +3,8 @@ import json
 import requests
 import os
 import boto3
+from boto3.dynamodb.conditions import Key
+
 dynamodb = boto3.resource('dynamodb')
 TIMES_TABLE_NAME = os.environ.get('TIMES_TABLE_NAME')
 LINE_MESSAGING_ENDPOINT = os.environ.get('LINE_MESSAGING_ENDPOINT')
@@ -24,20 +26,27 @@ body = json.dumps(data)
 def lambda_handler(event, context):
     table = dynamodb.Table(TIMES_TABLE_NAME)
 
-    table.delete_item(
-        Key={
-            'id': 'new'
-        }
-    )
-    requests.post(
-        f'{LINE_MESSAGING_ENDPOINT}/push',
-        data=body,
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': f'Bearer {LINE_ACCESS_TOKEN}'
-        }
+    res = table.query(
+        KeyConditionExpression=Key("id").eq("new")
     )
 
+    items = res.get('Items')
+
+    if len(items) > 0:
+        table.delete_item(
+            Key={
+                'id': 'new'
+            }
+        )
+        res = requests.post(
+            f'{LINE_MESSAGING_ENDPOINT}/push',
+            data=body,
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {LINE_ACCESS_TOKEN}'
+            }
+        )
+        print(res.json())
     return {
         "statusCode": 200,
         "body": json.dumps({
